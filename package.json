@@ -4,7 +4,7 @@
   "description": "Terraform SDK for JS",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "repository": {
     "type": "git",
