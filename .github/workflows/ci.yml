@@ -5,7 +5,7 @@ on:
         paths-ignore:
             - "*.md"
     pull_request:
-        branches: [$default-branch]
+        branches: [main]
     schedule:
         - cron: "0 12 * * 0"
 
@@ -32,6 +32,7 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
+                  cache-dependency-path: package-lock.json
 
             - name: Install
               run: npm ci
@@ -52,6 +53,7 @@ jobs:
               with:
                   node-version: 20
                   cache: "npm"
+                  cache-dependency-path: package-lock.json
 
             - name: Install
               run: npm ci

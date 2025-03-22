@@ -31,8 +31,9 @@ class Terraform {
     }
   }
 
-  // Initialize Terraform
-  init() {
+  // Initialize Terraform (creates providers.tf if missing)
+  init(providerConfig = {}) {
+    this.createProvidersFile(providerConfig);
     return this.runCommand("init");
   }
 
@@ -48,12 +49,17 @@ class Terraform {
 
   // Create a basic Terraform resource
   create(resourceType, config) {
-    const filePath = path.join(this.workDir, "main.tf");
+    if (!config) {
+      throw new Error("Missing required parameters");
+    }
+  
     const tfConfig = this.generateTerraformConfig(resourceType, config);
-    fs.writeFileSync(filePath, tfConfig);
-    console.log(`Terraform config written to ${filePath}`);
+    fs.writeFileSync(`${this.workDir}/main.tf`, tfConfig);
+    console.log(`Terraform config written to ${this.workDir}/main.tf`);
+  
+    return `Creating ${resourceType} with config: ${JSON.stringify(config)}`;
   }
-
+  
   // Generate Terraform HCL configuration dynamically
   generateTerraformConfig(resourceType, config) {
     let tfConfig = `resource "${resourceType}" "example" {\n`;
@@ -63,7 +69,36 @@ class Terraform {
     tfConfig += `}\n`;
     return tfConfig;
   }
+
+  // Creates providers.tf with default or given provider configuration
+  createProvidersFile(providerConfig) {
+    const defaultProvider = {
+      provider: "aws",
+      region: "us-east-1",
+    };
+  
+    const config = { ...defaultProvider, ...providerConfig };
+  
+    const providersTf = `
+  terraform {
+    required_providers {
+      aws = {
+        source  = "hashicorp/aws"
+        version = "~> 5.0"
+      }
+    }
+  }
+  
+  provider "aws" {
+    region = "${config.region}"
+  }
+  `;
+  
+    const providersPath = path.join(this.workDir, "providers.tf");
+    fs.writeFileSync(providersPath, providersTf);
+    console.log(`Terraform providers config written to ${providersPath}`);
+  }
+  
 }
 
 module.exports = Terraform;
-
